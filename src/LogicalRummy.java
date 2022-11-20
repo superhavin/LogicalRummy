@@ -9,8 +9,6 @@
  * Making a working game of rummy
  */
 
-import com.sun.xml.internal.bind.v2.runtime.output.StAXExStreamWriterOutput;
-
 import java.util.ArrayList;
 
 public class LogicalRummy{
