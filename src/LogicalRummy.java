@@ -8,7 +8,6 @@
  *
  * Making a working game of rummy
  */
-
 import java.util.ArrayList;
 
 public class LogicalRummy{
@@ -21,7 +20,6 @@ public class LogicalRummy{
     public static final int SUITES = 4;
 
     //Constructor for main game to allow each player to have their own individual hand
-
     /**
      * @param numberOfPlayers number of total players
      * @param numberOfCardsInDeck number of cards in deck
@@ -36,24 +34,31 @@ public class LogicalRummy{
         }
     }
 
-    //method reads player hand and returns a card in that position
+    /**
+     * method reads player hand and returns a card in that position
+     */
     public Cards getCardFromHand(int player, int position){
-
-        return (new Cards(0,0));
-    }
-    //method to add card to players hand
-    public Cards addCardToHand(int player, int position){
-
         return (new Cards(0,0));
     }
 
-    //method discard card from players hand
+    /**
+     * method to add card to players hand
+     */
+    public void addCardToHand(int player, int position){
+
+        //return (new Cards(0,0));
+    }
+
+    /**
+     * method discard card from players hand, and returns the card which was removed
+     */
     public Cards removeCardFromHand(int player, int position){
-
         return (new Cards(0,0));
     }
 
-    //method for displaying the card on the pile
+    /**
+     * method for displaying the card on the pile
+     */
     public String getCardPile(){
         String total = "";
         for(int i = 0; i < deck.size(); i++){
@@ -65,11 +70,14 @@ public class LogicalRummy{
     public static void main(String[] args){
         LogicalRummy mainGame = new LogicalRummy(4,52);
         System.out.println(mainGame.getCardPile());
+        //mainGame.playingTurn();
     }
 
-    //Static methods used multiple times by the main method
-    //method for playing out who ever turn it is
-    //its a boolean so you can verify if the turn was successful
+    //Static methods used multiple times by the game
+    /**
+     * method for playing out who ever turn it is
+     */
+    //it returns boolean, so we can determine whether the turn was valid or not
     static boolean playingTurn(){
         return false;
     }

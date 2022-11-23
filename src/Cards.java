@@ -22,14 +22,14 @@ public class Cards{
     public String getSuit(){
         return suit;
     }
-    public void setSuit(int suit){
+    private void setSuit(int suit){
         this.suit = SUITS[suit];
         this.rank = RANKS[suit];
     }
     public int getValue(){
         return value+1;
     }
-    public void setValue(int value){
+    private void setValue(int value){
         this.value = value;
     }
     public String getRanks() {

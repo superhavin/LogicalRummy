@@ -6,14 +6,15 @@ public class PlayersHand {
 
     public PlayersHand(){}
 
-    public void addCards(Cards card){
+    public void addCard(Cards card){
         cardsInHand.add(card);
     }
-
-    public Cards getCards(int position){
+    public Cards removeCard(int position){
+        return cardsInHand.remove(position);
+    }
+    public Cards getCard(int position){
         return cardsInHand.get(position);
     }
-
     public String readAllValues(){
         String total = "";
         for(int i = 0; i < cardsInHand.size(); i++){
@@ -22,7 +23,9 @@ public class PlayersHand {
         return total;
     }
 
-    //reads all cards in the player's hand
+    /**
+     * reads all cards in the player's hand
+     */
     public String toString(){
         String total = "";
         for(int i = 0; i < cardsInHand.size(); i++){
