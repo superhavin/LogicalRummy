@@ -18,6 +18,7 @@ public class LogicalRummy{
     public static int whoTurnIsIt = 1; //number to represent who's turn it is
     //Constant Variables
     public static final int SUITES = 4;
+    public static final double DECK_SIZE = 52.0;
 
     //Constructor for main game to allow each player to have their own individual hand
     /**
@@ -25,12 +26,20 @@ public class LogicalRummy{
      * @param numberOfCardsInDeck number of cards in deck
      */
     public LogicalRummy(int numberOfPlayers, int numberOfCardsInDeck){
+        //Creates empty player hands
         players = new PlayersHand[numberOfPlayers];
-
-        for(int i = 0; i < SUITES; i++){ //divides value of cards between its suites
-            //numberOfCardsInDeck
-            for(int o = 0; o < numberOfCardsInDeck/SUITES; o++){ //number of suites
-                deck.add(new Cards(o,i));
+        for(int i = 0; i < players.length; i++){
+            players[i] = new PlayersHand(); //setting up all the players hand doesnt take much
+        }
+        //Creates a non-shuffled deck full of cards
+        for(int j = 0; j < (int)Math.ceil(numberOfCardsInDeck/DECK_SIZE); j++) { //if cards are over 52, loops over
+            for (int i = 0; i < SUITES; i++) { //divides value of cards between its suites
+                for (int o = 0; o < numberOfCardsInDeck / SUITES; o++) { //number of suites
+                    if(deck.size() >= numberOfCardsInDeck){ //breaks out once the deck is FULL
+                        break;
+                    }
+                    deck.add(new Cards(o, i));
+                }
             }
         }
     }
@@ -62,7 +71,7 @@ public class LogicalRummy{
      * basically restarting the drawPile, by adding the discardPile to it
      */
     public void shuffleDrawPile(){
-
+        //for(int i = 0; i < discard.size(); i++){}
     }
 
     /**
@@ -83,7 +92,8 @@ public class LogicalRummy{
         //mainGame.playingTurn();
     }
 
-    //Static methods used multiple times by the game
+    //Static methods are used multiple times by the main game
+
     /**
      * method for playing out who ever turn it is
      */
