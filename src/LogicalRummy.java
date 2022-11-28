@@ -28,6 +28,7 @@ public class LogicalRummy{
         players = new PlayersHand[numberOfPlayers];
 
         for(int i = 0; i < SUITES; i++){ //divides value of cards between its suites
+            //numberOfCardsInDeck
             for(int o = 0; o < numberOfCardsInDeck/SUITES; o++){ //number of suites
                 deck.add(new Cards(o,i));
             }
@@ -57,9 +58,18 @@ public class LogicalRummy{
     }
 
     /**
-     * method for displaying the card on the pile
+     * shuffling the drawPile
+     * basically restarting the drawPile, by adding the discardPile to it
      */
-    public String getCardPile(){
+    public void shuffleDrawPile(){
+
+    }
+
+    /**
+     * method for displaying the card on the pile
+     * For the active cards in play
+     */
+    public String getDrawPile(){
         String total = "";
         for(int i = 0; i < deck.size(); i++){
             total += deck.get(i) + " ";
@@ -69,7 +79,7 @@ public class LogicalRummy{
 
     public static void main(String[] args){
         LogicalRummy mainGame = new LogicalRummy(4,52);
-        System.out.println(mainGame.getCardPile());
+        System.out.println(mainGame.getDrawPile());
         //mainGame.playingTurn();
     }
 

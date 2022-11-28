@@ -1,5 +1,4 @@
 public class Cards{
-
     final static String[] RANKS = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"};
     final static String[] SUITS = {"Spades", "Hearts", "Diamonds", "Clubs"};
     public int value = 0;
