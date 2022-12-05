@@ -26,7 +26,7 @@ public class Cards{
         this.rank = RANKS[suit];
     }
     public int getValue(){
-        return value+1;
+        return (value+1);
     }
     private void setValue(int value){
         this.value = value;
@@ -34,8 +34,14 @@ public class Cards{
     public String getRanks() {
         return rank;
     }
+    /**
+     * outputs the standard information that the player needs to read a card
+     */
+    public String readCard(){
+        return getRanks() + " of " + getSuit();
+    }
     public String toString(){
-        return "\nCard: " + getValue() + "\n Suit: " + getSuit() + "\n Rank: " + getRanks();
+        return "\nCard: " + getRanks() + "\n Suit: " + getSuit() + "\n Value: " + getValue();
     }
 
 }
