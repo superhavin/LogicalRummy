@@ -1,17 +1,20 @@
 import java.util.ArrayList;
 
 public class PlayersHand {
+
     //statics
-    int c = 1; //to count which player it is
+    private static int counter = 0;
+    public int c; //to count which player it is
     //variables
     public ArrayList<Cards> cardsInHand = new ArrayList<Cards>();
     //cards player laid down
     public ArrayList<Cards> laidCards = new ArrayList<Cards>();
-    public ArrayList<Cards> laidWinning = new ArrayList<Cards>();
+    public ArrayList<Cards> laidWinning = new ArrayList<Cards>(); //delete
     public int roundPoints = 0;
 
     public PlayersHand(){
-        c++;
+        counter++;
+        c = counter;
     }
     //
     public void addCard(Cards card){
@@ -27,7 +30,7 @@ public class PlayersHand {
     public void layDownCard(int position){
         laidCards.add(cardsInHand.remove(position));
     }
-    public void displayWin(Cards card){
+    public void displayWin(Cards card){ //delete
         laidWinning.add(card);
     }
 
@@ -39,6 +42,10 @@ public class PlayersHand {
         for(int i = 0; i < laidCards.size(); i++){
             cardsInHand.add(laidCards.remove(i));
         }
+    }
+
+    public void burnLaidWinning(){ //delete
+        laidWinning.clear();
     }
     //read all lists
     /**
