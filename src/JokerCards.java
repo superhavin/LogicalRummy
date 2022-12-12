@@ -14,6 +14,7 @@ public class JokerCards extends Cards{
         value = -1;
         suit = "Wilds";
         rank = "Joker";
+        suitIndex = 4; //out ranges the other indexes
     }
 
 
@@ -47,6 +48,7 @@ public class JokerCards extends Cards{
     public int getValue() {
         return super.getValue(); //FIGURE OUT LATER
     }
+
 
     /* Testing
     public static void main(String[] args) {
