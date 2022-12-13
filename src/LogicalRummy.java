@@ -16,10 +16,7 @@ public class LogicalRummy{
     private static ArrayList<Cards> deck = new ArrayList<Cards>(); //neutral pile of cards
     private static ArrayList<Cards> discard = new ArrayList<Cards>(); //discard pile of cards
     private static int rounds; //number of rounds
-    //public static ArrayList<PlayersHand> winners = new ArrayList<PlayersHand>();
-    /**
-     * uses methods to increment/read
-     */
+    private static int numStartingHand = 0;
     private static int playerTurnOrder = 1; //number to represent who's turn it is (1-max)
     public static Rounds gameRoundOrder = Rounds.SETS2; //represents which round it is
     private static int roundCounter = 1;
@@ -98,7 +95,7 @@ public class LogicalRummy{
         String total = "";
         total += "Current Hand of Player " + (player+1) + ":\n";
         for(int i = 0; i < players[player].cardsInHand.size(); i++){
-            total += players[player].getCard(i).readCard() + "\n";
+            total += /*(i+1) +*/ "|" + players[player].getCard(i).readCard() + "|\n";
         }
         return total;
     }
@@ -145,9 +142,9 @@ public class LogicalRummy{
         String total = "";
         total += "Current Laid Cards of Player " + (player+1) + ":\n";
         for(int i = 0; i < players[player].laidStacks.size(); i++){
-            total += "Stack #" + (i+1) + ": \n";
+            total += " Stack #" + (i+1) + ": \n";
             for(int o = 0; o < players[player].laidStacks.get(i).size(); o++){
-                total += " " + players[player].laidStacks.get(i).get(o).readCard() + "\n";
+                total += "  |" + players[player].laidStacks.get(i).get(o).readCard() + "|\n";
             }
         }
         return total;
@@ -157,7 +154,6 @@ public class LogicalRummy{
     /**
      * shuffling the drawPile
      * basically restarting the drawPile, by adding the discardPile to it
-     *
      */
     public void shuffleDrawPile(){
         for(int i = 0; i < discard.size(); i++){
@@ -212,10 +208,13 @@ public class LogicalRummy{
             deck.add(new JokerCards());
         }
     }
+
+    /**
+     * returns the standard form of whose turn it is
+     */
     public int whoseTurnIsIt(){
         return playerTurnOrder;
     }
-
 
     //Game Methods
 
@@ -268,25 +267,37 @@ public class LogicalRummy{
         //asks to buy card from plays, and adds a card to deck depending on their choices
         boolean hasBought = buyCard(scan, player);
         if (hasBought) {
-            System.out.println("\n" + playerIntro + "drew this card: " + addCardFromDrawPile(player).readCard() + "\n");
+            System.out.println("\n" + playerIntro + "drew this card: [" + addCardFromDrawPile(player).readCard() + "]\n");
         } else {
             addCardToHand(player, topCard);
             System.out.println("\n" + playerIntro + "drew this card: " + topCard.readCard() + "\n");
             topCard = null;
         }
-
-        //readEntireHand has title "Current Hand Player i"
-        System.out.println(readEntireHand(player));
-        //If the player can let the player options lay down set/run, or,
-        try {
-            checkIsSetIsRun(player);
-        } catch (Exception e) {
-            throw new ArithmeticException("Check Set/Run Error");
+        //checking if the players Laid Cards are empty
+        Boolean isLaidEmpty = null; //will throw null error if statement below breaks
+        if (players[player].laidStacks.get(0).size() <= 0) {
+            isLaidEmpty = true;
+        } else if (players[player].laidStacks.get(0).size() > 0) {
+            isLaidEmpty = false;
         }
-        //If the player can add cards in their hand to other laid piles (including their own), only if they have laid down
-        if (players[player].laidStacks.get(0).size() <= 0){ //if no cards have been laid
+
+        //the player can let the player options lay down set/run,
+        if (isLaidEmpty){ //only if player hasn't laid
+            try {
+                if(checkIsSetIsRun(player)){
+                    isLaidEmpty = false; //if the player has laid down a set, then the laid is no longer empty
+                    //System.out.println(readLaidCards(player));
+                }
+            } catch (Exception e) {
+                throw new ArithmeticException("Check Set/Run Error");
+            }
+        }
+
+        //the player can add cards in their hand to other laid piles (including their own),
+        if (!(isLaidEmpty)){ //only if player has laid down a card
             try {
                 addToLaidCard(player);
+                System.out.println("\n" + readLaidCards(player)); //shows all players laid card,
             } catch (Exception e) {
                 throw new ArithmeticException("Check Laid Addition Error");
             }
@@ -295,13 +306,14 @@ public class LogicalRummy{
         //Player discards card and ends turn
         String discardPrompt = playerIntro + "End of Turn: input which card to discard";
         if(players[player].cardsInHand.size() > 0) {
-            discard.add(
-                    removeCardFromHand(player,
-                            readPromptUserInput(scan, discardPrompt, players[player].cardsInHand.size())
-                    ));
-            //return true;
+            System.out.println(readEntireHand(player)); //readEntireHand has title "Current Hand Player i"
+            int playerDiscardChoice = readPromptUserInput(scan, discardPrompt, players[player].cardsInHand.size());
+            Cards discardTemp = removeCardFromHand(player, playerDiscardChoice);
+            discard.add(discardTemp);
+            System.out.println(playerIntro + "Discarded this card: *" + discardTemp.readCard() + "*");
         }else{
-            //return false; //isRoundOverIsGameOver(); //if player hand is empty
+            System.out.println(playerIntro + "Hand is Empty!"); //if player hand is empty
+            //return false; //isRoundOverIsGameOver(); //what should I do to end game quicker if hand is empty
         }
         return true;
     }
@@ -377,7 +389,8 @@ public class LogicalRummy{
      */
     public boolean buyCard(Scanner scan, int thisPlayer){
         Cards newCard = removeCardFromDrawPile(); //grabs a new card
-        String mcPrompt = "Do you want this card [" + newCard.readCard() + "],\nYes = 1, No = 2";
+        System.out.println(readEntireHand(thisPlayer));
+        String mcPrompt = "Do you want this card [" + newCard.readCard() + "]?\nYes = 1, No = 2";
         int mcChoice = readPromptUserInput(scan,mcPrompt,2);
         if(mcChoice == 0){
             topCard = newCard;
@@ -394,11 +407,11 @@ public class LogicalRummy{
                 continue;
             }
             System.out.println(readEntireHand(i));
-            String prompt = "Player " + (i+1) + " buy this card [" + newCard.readCard() + "],\nYes = 1, No = 2";
+            String prompt = "Player " + (i+1) + " Do you want this card [" + newCard.readCard() + "]?\nYes = 1, No = 2";
             int buyChoice = readPromptUserInput(scan,prompt,2); //in index form
             if(buyChoice == 0){
                 addCardToHand(i, newCard);
-                System.out.print("Player " + (i+1) + " gets 2 cards: [" + newCard.readCard() + " & " + addCardFromDrawPile(i).readCard() + "]");
+                System.out.print("\nPlayer " + (i+1) + " drew 2 cards: [" + newCard.readCard() + " & " + addCardFromDrawPile(i).readCard() + "]");
                 return true;
             }else if(buyChoice == 1){
                 ; //continues to next round
@@ -474,7 +487,7 @@ public class LogicalRummy{
             }
         }
         if(c <= 0){
-            System.out.println(playerIntro + "did not lay down any cards");
+            System.out.println(playerIntro + "did not lay down any cards into an existing stacks");
         }else{
             ;
         }
@@ -523,7 +536,8 @@ public class LogicalRummy{
             //check each player's laid cards to see if they have laid down all the cards they need to for the round
             for (int i = 0; i < players.length; i++) {
                     String playerIntro = "Player " + (i+1);
-                    String laidMsg = playerIntro + " has cards laid down in this round: " + gameRoundOrder;
+                    String laidMsg = playerIntro + " has laid down " + gameRoundOrder;
+                    String cardsLeftMsg = playerIntro + " has this many cards: " + players[i].cardsInHand.size();
                     switch (gameRoundOrder) {
                         case SETS2:
                             if (isSet(i) && isSet(i)) { //sets if 3 cards have the same values, if so add to laidCards[]
@@ -533,8 +547,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) { //lays down cards, then check if no cards in hand
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -547,8 +560,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) {
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -561,8 +573,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) {
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -575,8 +586,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) {
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -589,8 +599,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) {
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -603,8 +612,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) {
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -617,8 +625,7 @@ public class LogicalRummy{
                                 if(players[i].cardsInHand.size() <= 0) {
                                     isValid = true;
                                 }else{
-                                    System.out.println(playerIntro + " has this many cards: " +
-                                            players[i].cardsInHand.size());
+                                    System.out.println(cardsLeftMsg);
                                 }
                             } else {
                                 returnLaidToHand(i);
@@ -642,7 +649,9 @@ public class LogicalRummy{
                 discardEntireHand(i); //discards all cards from ALL players
                 discardLaidCards(i); //discard all laid cards
             }
+            startingHand(numStartingHand); //adds new cards to the player's hand which equal the orginal starting hand size
             roundCounter(); //moves onto next round
+            playerTurnOrder = 1; //(winningPlayer+1)
             isValid = false;
             if(roundCounter >=  rounds){
                 System.out.println("GAME OVER");
@@ -694,6 +703,7 @@ public class LogicalRummy{
                 addCardFromDrawPile(i);
             }
         }
+        numStartingHand = numOfCards; //saves the numOfCards in the starting hand
     }
 
     /**
@@ -733,6 +743,7 @@ public class LogicalRummy{
                     case SETS2:
                     case SET1RUN1:
                         //if laidStack is empty, fill it up, if not fill up other
+                        //MIGHT, need to change so if all a stacks are full it does nothing
                         if(players[player].laidStacks.get(0).size() <= 0) {
                             players[player].layDownCard(0,tempCard);
                             players[player].layDownCard(0,tempCard2);
@@ -894,7 +905,6 @@ public class LogicalRummy{
 
     /**
      * main game which everything will come together
-     *
      * REMINDER: all method inputs are in index form; tho when displaying use normal form
      */
     public static void main(String[] args) {
@@ -904,28 +914,28 @@ public class LogicalRummy{
         final int NUMBER_SETS = 1; //number of sets of deck
         final int GAME_ROUNDS = 3; //number of rounds in a game
         final int HAND_SIZE = 6;
+
         //Setting Up the Game
         LogicalRummy mainGame = new LogicalRummy(MAX_PLAYER, NUMBER_SETS * 52, GAME_ROUNDS);
         mainGame.startingHand(HAND_SIZE);
-                                            //mainGame.addJokersToDrawPile(2); YET TO BE IMPLEMENTED DO NOT USE
-
+                                                                                                                        //mainGame.addJokersToDrawPile(2); YET TO BE IMPLEMENTED DO NOT USE
+        //Creating Turn Header, prints at the start of each turn
+        int turnCounter = 0;
+        turnCounter++;
+        String turnMsg = "\n\n\nTurn #: " + turnCounter + "\nRound: " + gameRoundOrder.name();
+        System.out.println(turnMsg);
         while(true){
-            //shows all players laid card, if they have laid anything down
-            for(int i = 0; i < MAX_PLAYER; i++){
-                if(players[i].laidStacks.get(0).size() <= 0){
-                    continue;
-                }
-                mainGame.readLaidCards(i);
-            }
-            System.out.println("Player " + mainGame.whoseTurnIsIt() + " Turn: \n\n");
-            boolean hasMoved = mainGame.playerTurn(userInput, mainGame.whoseTurnIsIt()-1);
+            System.out.println("Player " + mainGame.whoseTurnIsIt() + " Turn: \n");
+            boolean hasMoved = mainGame.playerTurn(userInput, mainGame.whoseTurnIsIt()-1); //will always be true,
             mainGame.turnCounter(hasMoved);
-            //check if the game is over
+            //check if the game is over, if so displays who won
             if(mainGame.isRoundOverIsGameOver()){
                 mainGame.displayWinner();
                 break;
             }else{
-                ; //game not over
+                turnCounter++;//game not over
+                turnMsg = "\n\n\nTurn #: " + turnCounter + "\nRound: " + gameRoundOrder.name();
+                System.out.println(turnMsg);
             }
         }
 
@@ -933,5 +943,6 @@ public class LogicalRummy{
     //for testing: for (int i = 0; i < MAX_PLAYER; i++) {System.out.println(mainGame.readEntireHand(i));} System.out.println(mainGame.readPile());
     //Tested: readPromptUserInput, displayWinner, pointTracker, playerTurn|buyCard, turnCounter|roundCounter,
     // isSet|isRun, checkIsSetIsRun, addToLaidCard, isRoundOverIsGameOver
+    //method to read all properties of the class for testing, public void allProperties(){System.out.println("x" + x);}
 
 }
