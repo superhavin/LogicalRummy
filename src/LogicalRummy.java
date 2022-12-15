@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class LogicalRummy{
-    //Variables that augment the main game, shouldnt need multiple (set most properties to private)
+    //Variables that augment the main game,
     private static PlayersHand[] players; //number of players
     private static ArrayList<Cards> deck = new ArrayList<Cards>(); //neutral pile of cards
     private static ArrayList<Cards> discard = new ArrayList<Cards>(); //discard pile of cards
@@ -23,6 +23,7 @@ public class LogicalRummy{
     private static Cards topCard = null;
     //Constant Variables
     private static final int SUITES = 4;
+    private static final int RANKS = 13;
     private static final double DECK_SIZE = 52.0;
     private static final int MIN_PLAYER = 2;
     private static final int MIN_ROUNDS = 1;
@@ -39,29 +40,26 @@ public class LogicalRummy{
      * @param numberOfPlayers number of total players (min. 2)
      * @param numberOfCardsInDeck number of cards in deck (min. 52)
      */
-    public LogicalRummy(int numberOfPlayers, int numberOfCardsInDeck, int numOfRounds){
+    public LogicalRummy(int numberOfPlayers, int numberOfCardsInDeck, int numberOfRounds, int numberOfCardsInStartingHand){
         //Catching initialization problems
-        if(numberOfPlayers < MIN_PLAYER || numberOfCardsInDeck < DECK_SIZE || numOfRounds < MIN_ROUNDS){
+        if(numberOfPlayers < MIN_PLAYER || numberOfCardsInDeck < DECK_SIZE || numberOfRounds < MIN_ROUNDS){
             throw new ArithmeticException("Initialization- Below minimum values");
         }
+        if(numberOfCardsInDeck <= numberOfPlayers*numberOfCardsInStartingHand){
+            throw new ArithmeticException("Initialization- Not enough cards in the deck");
+        }
         //number of rounds
-        rounds = numOfRounds;
+        rounds = numberOfRounds;
         //Creates empty player hands
         players = new PlayersHand[numberOfPlayers];
         for(int i = 0; i < players.length; i++){
             players[i] = new PlayersHand(); //setting up all the players hand doesnt take much
         }
         //Creates a non-shuffled deck full of cards
-        for(int j = 0; j < (int)Math.ceil(numberOfCardsInDeck/DECK_SIZE); j++) { //if cards are over 52, loops over
-            for (int i = 0; i < SUITES; i++) { //divides value of cards between its suites
-                for (int o = 0; o < numberOfCardsInDeck / SUITES; o++) { //number of suites
-                    if(deck.size() >= numberOfCardsInDeck){ //breaks out once the deck is FULL
-                        break;
-                    }
-                    deck.add(new Cards(o, i));
-                }
-            }
-        }
+        addingStartingCardToDeck(numberOfCardsInDeck);
+        //Adding cards to player hand
+        numStartingHand = numberOfCardsInStartingHand;
+        startingHand(numberOfCardsInStartingHand);
     }
     //Hand Methods
     /**
@@ -195,6 +193,7 @@ public class LogicalRummy{
     public Cards removeCardFromDrawPile(){
         //checks if draw pile has one card or less, and shuffles it
         if(deck.size() <= 1){
+            System.out.println("Deck Empty");
             shuffleDrawPile();
         }
         return deck.remove((int)(Math.random()*deck.size()));
@@ -286,7 +285,6 @@ public class LogicalRummy{
             try {
                 if(checkIsSetIsRun(player)){
                     isLaidEmpty = false; //if the player has laid down a set, then the laid is no longer empty
-                    //System.out.println(readLaidCards(player));
                 }
             } catch (Exception e) {
                 throw new ArithmeticException("Check Set/Run Error");
@@ -310,7 +308,7 @@ public class LogicalRummy{
             int playerDiscardChoice = readPromptUserInput(scan, discardPrompt, players[player].cardsInHand.size());
             Cards discardTemp = removeCardFromHand(player, playerDiscardChoice);
             discard.add(discardTemp);
-            System.out.println(playerIntro + "Discarded this card: *" + discardTemp.readCard() + "*");
+            System.out.println(playerIntro + "Discarded this card: *" + discardTemp.readCard() + "*\n\n");
         }else{
             System.out.println(playerIntro + "Hand is Empty!"); //if player hand is empty
             //return false; //isRoundOverIsGameOver(); //what should I do to end game quicker if hand is empty
@@ -322,57 +320,119 @@ public class LogicalRummy{
         String laidDownSuccessMsg = "Player " + (player+1) + " laid down,";
         switch (gameRoundOrder){
             case SETS2:
-                if(isSet(player,true) && isSet(player,true)){
-                    System.out.println(laidDownSuccessMsg + " 2 Sets!"); //if u can lay down cards, removing from hand, adding to laidcards
-                    return true;
+                if(isSet(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0)); //removes the rest of the cards in that set  DELETE
+                    if(isSet(player,true)) {
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        System.out.println(laidDownSuccessMsg + " 2 Sets!"); //if u can lay down cards, removing from hand, adding to laidcards
+                        return true;
+                    }else{
+                       returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player); //if cards have been laid, conditions are not correct, return to main hand
                 }
                 break;
             case SET1RUN1:
-                if(isSet(player,true) && isRun(player,true)){
-                    System.out.println(laidDownSuccessMsg + " 1 Set, 1 Run!"); //TESTIE
-                    return true;
+                if(isSet(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0));
+                    if(isRun(player,true)) {
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        System.out.println(laidDownSuccessMsg + " 1 Set, 1 Run!");
+                        return true;
+                    }else{
+                        returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player);
                 }
                 break;
             case RUNS2:
-                if(isRun(player,true) && isRun(player,true)){
-                    System.out.println(laidDownSuccessMsg + " 2 Runs!");
-                    return true;
+                if(isRun(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0));
+                    if(isRun(player,true)) {
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        System.out.println(laidDownSuccessMsg + " 2 Runs!");
+                        return true;
+                    }else{
+                        returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player);
                 }
                 break;
             case SETS3:
-                if(isSet(player,true) && isSet(player,true) && isSet(player,true)){
-                    System.out.println(laidDownSuccessMsg + " 3 Sets!");
-                    return true;
+                if(isSet(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0));
+                    if(isSet(player,true)){
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        if(isSet(player,true)){
+                            addToLaidCard(player, players[player].laidStacks.get(2).get(0));
+                            System.out.println(laidDownSuccessMsg + " 3 Sets!");
+                            return true;
+                        }else{
+                            returnLaidToHand(player);
+                        }
+                    }else{
+                        returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player);
                 }
                 break;
             case SET2RUN1:
-                if(isSet(player,true) && isSet(player,true) && isRun(player,true)){
-                    System.out.println(laidDownSuccessMsg + " 2 Sets, 1 Run!");
-                    return true;
+                if(isSet(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0));
+                    if(isSet(player,true)) {
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        if(isRun(player,true)) {
+                            addToLaidCard(player, players[player].laidStacks.get(2).get(0));
+                            System.out.println(laidDownSuccessMsg + " 2 Sets, 1 Run!");
+                            return true;
+                        }else{
+                            returnLaidToHand(player);
+                        }
+                    }else{
+                        returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player);
                 }
                 break;
             case SET1RUN2:
-                if(isSet(player,true) && isRun(player,true) && isRun(player, true)){
-                    System.out.println(laidDownSuccessMsg + " 1 Set, 2 Runs!");
-                    return true;
+                if(isSet(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0));
+                    if(isRun(player,true)) {
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        if (isRun(player, true)) {
+                            addToLaidCard(player, players[player].laidStacks.get(2).get(0));
+                            System.out.println(laidDownSuccessMsg + " 1 Set, 2 Runs!");
+                            return true;
+                        }else{
+                            returnLaidToHand(player);
+                        }
+                    }else{
+                        returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player);
                 }
                 break;
             case RUN3:
-                if(isRun(player,true) && isRun(player,true) && isRun(player,true)){
-                    System.out.println(laidDownSuccessMsg + " 3 Runs!");
-                    return true;
+                if(isRun(player,true)){
+                    addToLaidCard(player, players[player].laidStacks.get(0).get(0));
+                    if(isRun(player,true)){
+                        addToLaidCard(player, players[player].laidStacks.get(1).get(0));
+                        if(isRun(player,true)){
+                            addToLaidCard(player, players[player].laidStacks.get(2).get(0));
+                            System.out.println(laidDownSuccessMsg + " 3 Runs!");
+                            return true;
+                        }else{
+                            returnLaidToHand(player);
+                        }
+                    }else{
+                        returnLaidToHand(player);
+                    }
                 }else{
                     returnLaidToHand(player);
                 }
@@ -431,6 +491,7 @@ public class LogicalRummy{
     public void addToLaidCard(int thisPlayer){
         String playerIntro = "Player " + (thisPlayer+1) + " ";
         int c = 0;
+        ArrayList<Cards> tempDiscard = new ArrayList<>();
         //loops through other all players laid cards, thisplayer = mc, j = others
         for(int i = 0; i < players.length; i++) {
             String msgLaidConfirmation = ""; //confirmation msg
@@ -450,9 +511,9 @@ public class LogicalRummy{
                         case SETS2:
                         case SETS3:
                             //if card in players hand is eqaual to the first card in the other players set
-                            if (players[i].laidStacks.get(j).get(0).getValue()
-                                    == playersCurrentCard.getValue()) {
-                                players[i].addCardToLaid(j, players[thisPlayer].removeCard(o));
+                            if (players[i].laidStacks.get(j).get(0).checkSet(playersCurrentCard)){
+                                tempDiscard.add(players[thisPlayer].getCard(o));
+                                players[i].addCardToLaid(j, players[thisPlayer].getCard(o));
                                 System.out.println(msgLaidConfirmation);
                                 c++;
                             }
@@ -460,22 +521,19 @@ public class LogicalRummy{
                         case SET1RUN1:
                         case SET2RUN1:
                         case SET1RUN2:
-                            if (players[i].laidStacks.get(j).get(0).getValue()
-                                    == playersCurrentCard.getValue() ||
-                                    (players[i].laidStacks.get(j).get(players[i].laidStacks.get(j).size() - 1).getValue()
-                                            == playersCurrentCard.getValue() + 1
-                                    )/*&& players[i].laidStacks.get(j).get(players[i].laidStacks.get(j).size()-1).getSuit()
-                                == playersCurrentCard.getSuit())*/) {
-                                players[i].addCardToLaid(j, players[thisPlayer].removeCard(o));
+                            if (players[i].laidStacks.get(j).get(0).checkSet(playersCurrentCard)
+                            || players[i].laidStacks.get(j).get(players[i].laidStacks.get(j).size()-1).checkRun(playersCurrentCard)){
+                                tempDiscard.add(players[thisPlayer].getCard(o));
+                                players[i].addCardToLaid(j, players[thisPlayer].getCard(o));
                                 System.out.println(msgLaidConfirmation);
                                 c++;
                             }
                             break;
                         case RUNS2:
                         case RUN3:
-                            if (players[i].laidStacks.get(j).get(players[i].laidStacks.get(j).size() - 1).getValue()
-                                    == playersCurrentCard.getValue() + 1) {
-                                players[i].addCardToLaid(j, players[thisPlayer].removeCard(o));
+                            if (players[i].laidStacks.get(j).get(players[i].laidStacks.get(j).size()-1).checkRun(playersCurrentCard)){
+                                tempDiscard.add(players[thisPlayer].getCard(o));
+                                players[i].addCardToLaid(j, players[thisPlayer].getCard(o));
                                 System.out.println(msgLaidConfirmation);
                                 c++;
                             }
@@ -486,11 +544,62 @@ public class LogicalRummy{
                 }
             }
         }
+            for(int i = 0; i < tempDiscard.size(); i++){
+                players[thisPlayer].removeCard(tempDiscard.get(i));
+            }
         if(c <= 0){
             System.out.println(playerIntro + "did not lay down any cards into an existing stacks");
         }else{
             ;
         }
+    }
+
+    /**
+     * to lay down specific cards in the player's own stacks
+     * additional laid card method for isSet/isRun,
+     */
+    public void addToLaidCard(int player, Cards card){   //note
+       ArrayList<Cards> tempDiscard = new ArrayList<>();
+           for(int o = 0; o < players[player].cardsInHand.size(); o++){
+               Cards playersCurrentCard = players[player].cardsInHand.get(o);
+               for(int j = 0; j < players[player].laidStacks.size(); j++) {
+                   if(players[player].laidStacks.get(j).size() <= 0){
+                       continue;
+                   }
+                   switch (gameRoundOrder) {
+                       case SETS2:
+                       case SETS3:
+                           //if card in players hand is eqaual to the first card in the other players set
+                           if (players[player].laidStacks.get(j).get(0).checkSet(playersCurrentCard)){
+                               tempDiscard.add(players[player].getCard(o));
+                               players[player].addCardToLaid(j, players[player].getCard(o));
+                           }
+                           break;
+                       case SET1RUN1:
+                       case SET2RUN1:
+                       case SET1RUN2:
+                           if (players[player].laidStacks.get(j).get(0).checkSet(playersCurrentCard)
+                           || players[player].laidStacks.get(j).get(players[player].laidStacks.get(j).size()-1).checkRun(playersCurrentCard)){
+                               tempDiscard.add(players[player].getCard(o));
+                               players[player].addCardToLaid(j, players[player].getCard(o));
+                           }
+                           break;
+                       case RUNS2:
+                       case RUN3:
+                           if (players[player].laidStacks.get(j).get(players[player].laidStacks.get(j).size()-1).checkRun(playersCurrentCard)){
+                               tempDiscard.add(players[player].getCard(o));
+                               players[player].addCardToLaid(j, players[player].getCard(o));
+                           }
+                           break;
+                       default:
+                           throw new ArithmeticException("Adding to Laid Cards- Order Out of Bound");
+                   }
+               }
+           }
+
+       for(int i = 0; i < tempDiscard.size(); i++){
+           players[player].removeCard(tempDiscard.get(i));
+       }
     }
 
     /**
@@ -703,7 +812,23 @@ public class LogicalRummy{
                 addCardFromDrawPile(i);
             }
         }
-        numStartingHand = numOfCards; //saves the numOfCards in the starting hand
+    }
+
+    /**
+     * adds cards to deck in normal deck order
+     * in order of Spades, Hearts, Diamonds, Clubs; then 1, 2, 3, 4, etc.
+     */
+    public void addingStartingCardToDeck(int numberOfCards){
+        for(int j = 0; j < (int)Math.ceil(numberOfCards/DECK_SIZE); j++) { //if cards are over 52, loops over
+            for (int i = 0; i < SUITES; i++) { //divides value of cards between its suites
+                for (int o = 0; o < RANKS; o++) { //number of suites
+                    if(deck.size() >= numberOfCards){ //breaks out once the deck is FULL
+                        break;
+                    }
+                    deck.add(new Cards(o, i));
+                }
+            }
+        }
     }
 
     /**
@@ -730,6 +855,7 @@ public class LogicalRummy{
     /**
      * @param isPlayerTurn for a standard turn
      */
+    //MIGHT, implement the ability to choose which "type" of stack to drop using
     private boolean isSet(int player, boolean isPlayerTurn){ //shit code will take time to make better
         players[player].sortForSets();
         for(int i = 0; i < players[player].cardsInHand.size()-2; i++){
@@ -739,6 +865,7 @@ public class LogicalRummy{
                 Cards tempCard = players[player].cardsInHand.get(i);
                 Cards tempCard2 = players[player].cardsInHand.get(i+1);
                 Cards tempCard3 = players[player].cardsInHand.get(i+2);
+                //System.out.println(tempCard.readCard() + "<1 " + tempCard2.readCard() + "<2 " + tempCard3.readCard() + "<3 ");
                 switch (gameRoundOrder){
                     case SETS2:
                     case SET1RUN1:
@@ -749,9 +876,13 @@ public class LogicalRummy{
                             players[player].layDownCard(0,tempCard2);
                             players[player].layDownCard(0,tempCard3);
                         }else{
-                            players[player].layDownCard(1,tempCard);
-                            players[player].layDownCard(1,tempCard2);
-                            players[player].layDownCard(1,tempCard3);
+                            if(players[player].laidStacks.get(0).get(0).getValue() != tempCard.getValue()) {  //checkpoint
+                                players[player].layDownCard(1, tempCard);
+                                players[player].layDownCard(1, tempCard2);
+                                players[player].layDownCard(1, tempCard3);
+                            }else{
+                                //return false;
+                            }
                         }
                         break;
                     case SETS3:
@@ -762,13 +893,21 @@ public class LogicalRummy{
                             players[player].layDownCard(0,tempCard2);
                             players[player].layDownCard(0,tempCard3);
                         }else if(players[player].laidStacks.get(1).size() <= 0){
-                            players[player].layDownCard(1,tempCard);
-                            players[player].layDownCard(1,tempCard2);
-                            players[player].layDownCard(1,tempCard3);
+                            if(players[player].laidStacks.get(0).get(0).getValue() != tempCard.getValue()) {
+                                players[player].layDownCard(1, tempCard);
+                                players[player].layDownCard(1, tempCard2);
+                                players[player].layDownCard(1, tempCard3);
+                            }else{
+                                //return false;
+                            }
                         }else{
-                            players[player].layDownCard(2,tempCard);
-                            players[player].layDownCard(2,tempCard2);
-                            players[player].layDownCard(2,tempCard3);
+                            if(players[player].laidStacks.get(1).get(0).getValue() != tempCard.getValue()) {
+                                players[player].layDownCard(2, tempCard);
+                                players[player].layDownCard(2, tempCard2);
+                                players[player].layDownCard(2, tempCard3);
+                            }else{
+                                //return false;
+                            }
                         }
                         break;
                     case RUNS2:
@@ -778,6 +917,7 @@ public class LogicalRummy{
                     default:
                         throw new ArithmeticException("Is Set- Order Out of Bound");
                 }
+                //addToLaidCard(player,tempCard);  //DELETE
                 return true;
             }
         }
@@ -863,6 +1003,7 @@ public class LogicalRummy{
                     default:
                         throw new ArithmeticException("Is Run- Order Out of Bound");
                 }
+                //addToLaidCard(player,tempCard);  //DELETE
                 return true;
             }
         }
@@ -911,13 +1052,11 @@ public class LogicalRummy{
         //variables which will be used for instantiating a game
         Scanner userInput = new Scanner(System.in);
         final int MAX_PLAYER = 4; //total number of players
-        final int NUMBER_SETS = 1; //number of sets of deck
-        final int GAME_ROUNDS = 3; //number of rounds in a game
-        final int HAND_SIZE = 6;
-
+        final int NUMBER_SETS = 2; //number of sets of deck
+        final int GAME_ROUNDS = 3; //number of rounds in a game (wraps around at 7)
+        final int HAND_SIZE = 6; //size of hand, make sure it is not to large
         //Setting Up the Game
-        LogicalRummy mainGame = new LogicalRummy(MAX_PLAYER, NUMBER_SETS * 52, GAME_ROUNDS);
-        mainGame.startingHand(HAND_SIZE);
+        LogicalRummy mainGame = new LogicalRummy(MAX_PLAYER, NUMBER_SETS*52, GAME_ROUNDS, HAND_SIZE);
                                                                                                                         //mainGame.addJokersToDrawPile(2); YET TO BE IMPLEMENTED DO NOT USE
         //Creating Turn Header, prints at the start of each turn
         int turnCounter = 0;
@@ -940,7 +1079,8 @@ public class LogicalRummy{
         }
 
     }
-    //for testing: for (int i = 0; i < MAX_PLAYER; i++) {System.out.println(mainGame.readEntireHand(i));} System.out.println(mainGame.readPile());
+    //reads all players hand: for (int i = 0; i < MAX_PLAYER; i++) {System.out.println(mainGame.readEntireHand(i));} System.out.println(mainGame.readPile());
+    //reads all of the main deck: System.out.println(deck.size()); mainGame.removeCardFromDrawPile(); for(int i = 0; i < deck.size(); i++){System.out.println(deck.get(i).readCard());}
     //Tested: readPromptUserInput, displayWinner, pointTracker, playerTurn|buyCard, turnCounter|roundCounter,
     // isSet|isRun, checkIsSetIsRun, addToLaidCard, isRoundOverIsGameOver
     //method to read all properties of the class for testing, public void allProperties(){System.out.println("x" + x);}

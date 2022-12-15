@@ -29,6 +29,14 @@ public class PlayersHand {
     public Cards removeCard(int position){
         return cardsInHand.remove(position);
     }
+    public Cards removeCard(Cards card){
+        for(int i = 0; i < cardsInHand.size(); i++){
+            if(cardsInHand.get(i).equals(card)){
+                return cardsInHand.remove(i);
+            }
+        }
+        return null;
+    }
     public Cards getCard(int position){
         return cardsInHand.get(position);
     }
@@ -57,14 +65,6 @@ public class PlayersHand {
     public int getRoundPoints(){
         return roundPoints;
     }
-
-    /*public void returnLaidToHand(){
-        for(int i = 0; i < laidStacks.size(); i++) {
-            for (int o = 0; o < laidStacks.get(i).size(); o++) {
-                cardsInHand.add(laidStacks.get(i).remove(0));
-            }
-        }
-    }*/
 
     public void sortForSets(){
         Cards temp = null;
