@@ -3,8 +3,11 @@ import java.util.ArrayList;
 public class PlayersHand {
 
     //statics
+    /**
+     * counter of each playerhand for displaying the winner
+     */
     private static int counter = 0;
-    public int c; //to count which player it is
+    public int c; //to count which number player it is
     //variables
     public ArrayList<Cards> cardsInHand = new ArrayList<Cards>();
     /**
@@ -79,7 +82,8 @@ public class PlayersHand {
             }
         }
     }
-    public void sortForRuns(){
+    public void sortForRuns(){ //duplicate cards causes ERROR, like 1H, 2H, 3H, 3H, 4H
+        //find a way to sort duplicates so there out of the way of a good line up
         Cards temp = null;
         for(int i = 0; i < cardsInHand.size(); i++){
             for(int o = i+1; o < cardsInHand.size(); o++){

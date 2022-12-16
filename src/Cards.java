@@ -49,11 +49,10 @@ public class Cards{
         }
         return false;
     }
-    public boolean checkRun(Cards card){
-        if((getValue()+1) == card.getValue() && getSuit() == card.getSuit()){
-            return true;
-        }
-        if((getValue()-1) == card.getValue() && getSuit() == card.getSuit()){
+    public boolean checkRun(Cards card){ //MIGHT, need to revamp code
+        int localValue = getValue();
+        //if K to A //if(localValue == 12 && card.getValue() == 0){ localValue = -1; }
+        if( (localValue+1) == card.getValue() && getSuit() == card.getSuit()){ //checks only in one direction
             return true;
         }
         return false;
