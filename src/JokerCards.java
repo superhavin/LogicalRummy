@@ -27,7 +27,7 @@ public class JokerCards extends Cards{
      * @param num
      * @return ordinal form of num
      */
-    private String ordinalNum(int num){
+    private static String ordinalNum(int num){
         if(num % 10 == 1 && num != 11){
             return(num + "st");
         }else if(num % 10 == 2 && num != 12){
@@ -50,14 +50,4 @@ public class JokerCards extends Cards{
     }
 
 
-    /* Testing
-    public static void main(String[] args) {
-        Cards[] trollDeck = new Cards[100];
-        for(int i = 0; i < trollDeck.length; i++){
-            trollDeck[i] = new JokerCards();
-        }
-        for(int i = 0; i < trollDeck.length; i++){
-            System.out.println(trollDeck[i].readCard());
-        }
-    }*/
 }
